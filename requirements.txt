@@ -1,0 +1,10 @@
+youtube-search-python
+pytube
+ytmusicapi
+mutagen
+tqdm
+pathvalidate
+ffmpeg-python
+fuzzywuzzy[speedup]
+python-Levenshtein
+

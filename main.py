@@ -207,12 +207,7 @@ def process_artists(channel_ids: list[str], destination: Path, results: types.Re
     progress_output = get_output_pipe()
     albums: list[AlbumInput] = []
     for channel_id in tqdm(channel_ids, desc='Processing artists', unit='artist', file=progress_output):
-        for i in range(15):
-            try:
-                process_artist(channel_id, destination, albums)
-                break
-            except:
-                time.sleep(1)
+        process_artist(channel_id, destination, albums)
     if not albums:
         return
     tracks: list[TrackInput] = []

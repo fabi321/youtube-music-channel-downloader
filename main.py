@@ -2,6 +2,8 @@
 
 from youtubesearchpython import ChannelsSearch, SearchVideos
 import argparse
+
+from util.io import bprint, eprint, get_output_pipe, always_gen, join_and_create
 from util.multiselect import multiselect
 from util import convert_audio, types, database
 from pathlib import Path
@@ -13,42 +15,10 @@ from urllib.request import urlretrieve
 from tqdm import tqdm
 from tqdm.contrib.concurrent import thread_map
 import os
-import sys
-import time
 from pathvalidate import sanitize_filename
 import traceback
 
 ytmusic: YTMusic = YTMusic()
-
-
-def bprint(*args, **kwargs):
-    if not types.Options.background:
-        print(*args, **kwargs)
-
-
-def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-
-
-def get_output_pipe():
-    if types.Options().background:
-        return open(os.devnull, 'w')
-    else:
-        return sys.stderr
-
-
-def always_gen(n: int, v):
-    for i in range(n):
-        yield v
-
-
-def join_and_create(base: Path, added: str) -> Path:
-    joined = base.joinpath(sanitize_filename(added))
-    try:
-        joined.mkdir()
-    except FileExistsError:
-        pass
-    return joined
 
 
 def get_channel_id(name: str) -> str:

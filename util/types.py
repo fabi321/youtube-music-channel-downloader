@@ -1,4 +1,5 @@
 from typing import TypedDict, Optional
+from pathlib import Path
 
 
 class Thumbnail(TypedDict):
@@ -83,6 +84,7 @@ class ResultTrack(TypedDict):
     title: str
     album: str
     artist: str
+    id: str
 
 
 class ResultAlbum(TypedDict):
@@ -99,6 +101,18 @@ class ResultError(TypedDict):
 
 
 class Result(TypedDict):
-    tracks: dict[str, ResultTrack]
+    tracks: list[ResultTrack]
     albums: dict[str, ResultAlbum]
     errors: list[ResultError]
+
+
+ResultTuple = tuple[list[ResultTrack], dict[str, ResultAlbum], list[ResultError]]
+
+
+class Arguments:
+    threads: int
+    background: bool
+    album_only: bool
+    name: list[str]
+    destination: Path
+    channel_id: list[str]

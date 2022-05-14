@@ -1,0 +1,39 @@
+from pathlib import Path
+from typing import Optional
+from urllib.request import urlretrieve
+
+from process.util import ytmusic
+from util import types, database
+from util.io import join_and_create
+
+
+def get_albums_for_artist(artist: types.Artist) -> Optional[list[types.AlbumResult]]:
+    if 'albums' in artist:
+        params: str = artist['albums'].get('params')
+        if params:
+            param_result = ytmusic.get_artist_albums(artist['channelId'], artist['albums']['params'])
+            if param_result:
+                return param_result
+        return artist['albums']['results']
+
+
+def process_thumbnail(album: types.Album, album_destination: Path):
+    cover_path: Path = album_destination.joinpath('cover.jpg')
+    urlretrieve(album['thumbnails'][-1]['url'], cover_path)
+    return cover_path
+
+
+TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int]
+
+
+def process_album(album: types.AlbumResult, artist: types.Artist, artist_destination: Path, tracks: list[TrackInput]):
+    album: types.Album = ytmusic.get_album(album['browseId'])
+    alid: int = database.insert_album(album, artist)
+    db_tracks: list[str] = database.get_tracks_for_album(alid)
+    album_destination: Path = join_and_create(artist_destination, album['title'])
+    cover_path = process_thumbnail(album, album_destination)
+    for i in range(len(album['tracks'])):
+        track: types.Track = album['tracks'][i]
+        video_id: str = database.get_video_id_for_track(track)
+        if video_id not in db_tracks:
+            tracks.append((i, album, artist, album_destination, cover_path, alid))

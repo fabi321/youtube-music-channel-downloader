@@ -56,12 +56,14 @@ def parse_args() -> types.Arguments:
     parser.add_argument('--background', '-b', action='store_true', help='Run in Background mode, only returning a final json')
     parser.add_argument('--album-only', '-a', action='store_true', help='Only investigate unknown albums, do not check all individual tracks')
     parser.add_argument('--channel-id', '-c', type=str, nargs='*', help='Specify ChannelIds to check')
+    parser.add_argument('--mp3', action='store_true', help='produce mp3 files instead of ogg files')
     parser.add_argument('destination', metavar='D', type=Path, help='The directory of the music collection')
     parser.add_argument('name', metavar='N', type=str, nargs='*', help='The name of the channel')
     args = parser.parse_args(namespace=types.Arguments())
     types.Options.processing_threads = args.threads
     types.Options.background = args.background
     types.Options.album_only = args.album_only
+    types.Options.mp3 = args.mp3
     return args
 
 

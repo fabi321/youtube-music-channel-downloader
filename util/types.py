@@ -78,6 +78,7 @@ class Options:
     processing_threads: int
     background: bool
     album_only: bool
+    mp3: bool
 
 
 class ResultTrack(TypedDict):
@@ -116,3 +117,4 @@ class Arguments:
     name: list[str]
     destination: Path
     channel_id: list[str]
+    mp3: bool

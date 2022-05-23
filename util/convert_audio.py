@@ -5,7 +5,7 @@ from mutagen.flac import Picture
 from mutagen.id3 import PictureType
 from base64 import b64encode
 from json import loads
-from ffmpeg import probe, Stream
+from ffmpeg import probe
 
 intended_i = -16.0
 intended_tp = -1.0
@@ -30,7 +30,7 @@ class Metadata:
         self.cover: str = b64encode(picture.write()).decode()
 
     def for_ffmpeg(self) -> list[str]:
-        all_attributes = {
+        all_attributes: dict[str, str] = {
             'TITLE': self.title,
             'ARTIST': self.artist,
             'ALBUM': self.album,
@@ -38,6 +38,12 @@ class Metadata:
             'TRACKNUMBER': self.track,
             #'METADATA_BLOCK_PICTURE': self.cover
         }
+        if types.Options.mp3:
+            new_attributes: dict[str, str] = {}
+            for key, value in all_attributes.items():
+                name: str = key.lower().replace('tracknumber', 'track')
+                new_attributes[name] = value
+            all_attributes = new_attributes
         result = []
         for (name, value) in all_attributes.items():
             result.append('-metadata')
@@ -60,8 +66,9 @@ def level_and_combine_audio(tmp_file: str, track_path: Path, metadata: Metadata)
                 f'offset={json["target_offset"]}:linear=true,'
                 f'aresample=resampler=soxr:out_sample_rate={sample_rate}:precision=28,'
                 'aformat=channel_layouts=stereo')
+    codec = 'libmp3lame' if types.Options.mp3 else 'libopus'
     audio_extract_command = [*nice_cmd, 'ffmpeg', '-y', '-v', 'warning', '-i',  tmp_file, '-af', loudnorm,
-                '-c:a', 'libopus', '-b:a', bit_rate, '-vn', *metadata.for_ffmpeg(), track_path]
+                '-c:a', codec, '-b:a', bit_rate, '-vn', *metadata.for_ffmpeg(), str(track_path)]
     extract = Popen(audio_extract_command)
     extract.wait()
     return extract.returncode == 0

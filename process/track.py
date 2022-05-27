@@ -4,7 +4,7 @@ from typing import Optional
 from pathvalidate import sanitize_filename
 from pytube import YouTube, Stream
 
-from youtubesearchpython import SearchVideos
+from youtubesearchpython import ChannelSearch
 
 from util import types, convert_audio, database
 from util.io import eprint
@@ -12,16 +12,16 @@ from util.io import eprint
 
 def get_alternative_track_id(track: types.Track, album: types.Album, artist: types.Artist) -> Optional[str]:
     from fuzzywuzzy import fuzz
-    search = SearchVideos(f'"{artist["name"]} - topic" "{album["title"]}" "{track["title"]}"')
+    search = ChannelSearch(f'"{album["title"]}" "{track["title"]}"', artist['topic_channel_id'])
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
-    search = SearchVideos(f'"{artist["name"]} - topic" "{track["title"]}"')
+    search = ChannelSearch(f'"{track["title"]}"', artist['topic_channel_id'])
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
     title = track['title'].split('(')[0].strip()
-    search = SearchVideos(f'"{artist["name"]} - topic" "{title}"')
+    search = ChannelSearch(f'"{title}"', artist['topic_channel_id'])
     for result in search.resultComponents:
         if result['title'].lower() == title.lower():
             return result['id']

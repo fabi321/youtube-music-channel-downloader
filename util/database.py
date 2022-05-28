@@ -26,7 +26,8 @@ create table if not exists artist (
     channel_id text not null unique,
     topic_channel_id text not null,
     description text,
-    name text not null
+    name text not null,
+    singles integer not null
 );
 create table if not exists album (
     alid integer primary key,
@@ -47,7 +48,7 @@ create table if not exists track (
         """)
 
 
-def insert_artist(artist: types.Artist) -> int:
+def insert_artist(artist: types.Artist, no_singles: bool) -> int:
     conn = get_connection()
     with conn:
         cur = conn.cursor()
@@ -55,21 +56,27 @@ def insert_artist(artist: types.Artist) -> int:
         aid = cur.fetchone()
         if not aid:
             cur.execute('''
-            insert into artist (channel_id, topic_channel_id, description, name)
-            values (?, ?, ?, ?)
+            insert into artist (channel_id, topic_channel_id, description, name, singles)
+            values (?, ?, ?, ?, ?)
             returning aid
-            ''', (artist['channelId'], artist['topic_channel_id'], artist['description'], artist['name']))
+            ''', (artist['channelId'], artist['topic_channel_id'], artist['description'], artist['name'], not no_singles))
             aid = cur.fetchone()
+        else:
+            cur.execute('''
+                update artist
+                    set singles = ?
+                where aid = ?
+            ''', (not no_singles, aid[0]))
     return aid[0]
 
 
-def get_artists() -> list[str]:
+def get_artists() -> list[tuple[str, bool]]:
     conn = get_connection()
     with conn:
         cur = conn.cursor()
-        cur.execute('select channel_id from artist')
+        cur.execute('select channel_id, single from artist')
         res = cur.fetchall()
-    return [i[0] for i in res]
+    return [(i[0], not bool(i[1])) for i in res]
 
 
 def get_artist(channel_id: str) -> int:

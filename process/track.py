@@ -4,24 +4,24 @@ from typing import Optional
 from pathvalidate import sanitize_filename
 from pytube import YouTube, Stream
 
-from youtubesearchpython import ChannelSearch
+from youtubesearchpython import SearchVideos
 
 from util import types, convert_audio, database
 from util.io import eprint
 
 
-def get_alternative_track_id(track: types.Track, album: types.Album, artist: types.Artist) -> Optional[str]:
+def get_alternative_track_id(track: types.Track, album: Optional[types.Album], artist: types.Artist) -> Optional[str]:
     from fuzzywuzzy import fuzz
-    search = ChannelSearch(f'"{album["title"]}" "{track["title"]}"', artist['topic_channel_id'])
+    search = SearchVideos(f'"{artist["name"]} - Topic" "{album["title"]}" "{track["title"]}"')
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
-    search = ChannelSearch(f'"{track["title"]}"', artist['topic_channel_id'])
+    search = SearchVideos(f'"{artist["name"]} - Topic" "{track["title"]}"')
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
     title = track['title'].split('(')[0].strip()
-    search = ChannelSearch(f'"{title}"', artist['topic_channel_id'])
+    search = SearchVideos(f'"{artist["name"]} - Topic" "{title}"')
     for result in search.resultComponents:
         if result['title'].lower() == title.lower():
             return result['id']
@@ -35,11 +35,14 @@ def get_alternative_track_id(track: types.Track, album: types.Album, artist: typ
     return best_result
 
 
-def process_track(track_id: int, album: types.Album, artist: types.Artist, album_destination: Path, cover_path: Path, alid: int):
-    track: types.Track = album['tracks'][track_id]
-    track_id += 1
-    extension = 'mp3' if types.Options.mp3 else 'ogg'
-    track_path: Path = album_destination.joinpath(f'{track_id:02} - {sanitize_filename(track["title"])}.{extension}')
+def process_track(
+        track: types.Track,
+        artist: types.Artist,
+        track_path: Path,
+        cover_path: Path,
+        track_id: int,
+        album: types.Album
+) -> bool:
     video: Optional[YouTube] = None
     if track['videoId']:
         video = YouTube(f'https://youtube.com/watch?v={track["videoId"]}')
@@ -56,11 +59,21 @@ def process_track(track_id: int, album: types.Album, artist: types.Artist, album
         stream = video.streams.get_audio_only(subtype='webm')
     if not stream:
         video.streams.get_audio_only()
-    track_tmp_path = stream.download(output_path=str(album_destination), filename_prefix=str(track_id))
+    track_tmp_path = stream.download(output_path=str(track_path.parent), filename_prefix=str(track_id))
     metadata: convert_audio.Metadata = convert_audio.Metadata(track, track_id, album, artist, cover_path)
     convert_success: bool = convert_audio.level_and_combine_audio(track_tmp_path, track_path, metadata)
     if convert_success:
         Path(track_tmp_path).unlink()
+    return convert_success
+
+
+def process_album_track(track_id: int, album: types.Album, artist: types.Artist, album_destination: Path, cover_path: Path, alid: int):
+    track: types.Track = album['tracks'][track_id]
+    track_id += 1
+    extension = 'mp3' if types.Options.mp3 else 'ogg'
+    track_path: Path = album_destination.joinpath(f'{track_id:02} - {sanitize_filename(track["title"])}.{extension}')
+    convert_success: bool = process_track(track, artist, track_path, cover_path, track_id, album)
+    if convert_success:
         database.insert_track(alid, track, track_id)
     else:
         eprint(f'Warning: could not process track {track["title"]} from album {album["title"]}')

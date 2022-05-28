@@ -36,15 +36,14 @@ def maintenance(destination: Path, results: types.ResultTuple):
 
 def add_channels_from_names(destination: Path, names: list[str], results: types.ResultTuple):
     init(destination)
-    channels = []
-    for name in names:
-        channels.append(get_channel_id(name))
+    channels = [(get_channel_id(name), types.Options.no_singles) for name in names]
     return process_artists(channels, destination, results)
 
 
 def add_channels_from_channel_ids(destination: Path, channel_ids: list[str], results: types.ResultTuple):
     init(destination)
-    return process_artists(channel_ids, destination, results)
+    channels = [(channel_id, types.Options.no_singles) for channel_id in channel_ids]
+    return process_artists(channels, destination, results)
 
 
 def parse_args() -> types.Arguments:
@@ -57,12 +56,14 @@ def parse_args() -> types.Arguments:
     parser.add_argument('--album-only', '-a', action='store_true', help='Only investigate unknown albums, do not check all individual tracks')
     parser.add_argument('--channel-id', '-c', type=str, nargs='*', help='Specify ChannelIds to check')
     parser.add_argument('--mp3', action='store_true', help='produce mp3 files instead of ogg files')
+    parser.add_argument('--no-singles', action='store_true', help='Do not download singles for the supplied artists')
     parser.add_argument('destination', metavar='D', type=Path, help='The directory of the music collection')
     parser.add_argument('name', metavar='N', type=str, nargs='*', help='The name of the channel')
     args = parser.parse_args(namespace=types.Arguments())
     types.Options.processing_threads = args.threads
     types.Options.background = args.background
     types.Options.album_only = args.album_only
+    types.Options.no_singles = args.no_singles
     types.Options.mp3 = args.mp3
     return args
 

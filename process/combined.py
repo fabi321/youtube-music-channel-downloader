@@ -8,7 +8,7 @@ from tqdm.contrib.concurrent import thread_map
 from process.album import process_album, TrackInput
 from process.artist import process_artist, AlbumInput
 
-from process.track import process_track
+from process.track import process_album_track
 from util import types
 from util.io import eprint, get_output_pipe, always_gen
 
@@ -18,7 +18,7 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
     error_result: Optional[str] = None
     for i in range(2):
         try:
-            process_track(*args)
+            process_album_track(*args)
             error_result = None
             break
         except:
@@ -50,11 +50,11 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
         albums[album['audioPlaylistId']] = result_album
 
 
-def process_artists(channel_ids: list[str], destination: Path, results: types.ResultTuple):
+def process_artists(channels: list[tuple[str, bool]], destination: Path, results: types.ResultTuple):
     progress_output = get_output_pipe()
     albums: list[AlbumInput] = []
-    for channel_id in tqdm(channel_ids, desc='Processing artists', unit='artist', file=progress_output):
-        process_artist(channel_id, destination, albums)
+    for channel in tqdm(channels, desc='Processing artists', unit='artist', file=progress_output):
+        process_artist(channel[0], destination, albums, channel[1])
     if not albums:
         return
     tracks: list[TrackInput] = []

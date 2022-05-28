@@ -11,10 +11,20 @@ def get_albums_for_artist(artist: types.Artist) -> Optional[list[types.AlbumResu
     if 'albums' in artist:
         params: str = artist['albums'].get('params')
         if params:
-            param_result = ytmusic.get_artist_albums(artist['channelId'], artist['albums']['params'])
+            param_result = ytmusic.get_artist_albums(artist['channelId'], params)
             if param_result:
                 return param_result
         return artist['albums']['results']
+
+
+def get_singles_for_artist(artist: types.Artist) -> Optional[list[types.SingleResult]]:
+    if 'singles' in artist:
+        params: str = artist['singles'].get('params')
+        if params:
+            param_result = ytmusic.get_artist_albums(artist['singles']['browseId'], params)
+            if param_result:
+                return param_result
+        return artist['singles']['results']
 
 
 def process_thumbnail(album: types.Album, album_destination: Path):

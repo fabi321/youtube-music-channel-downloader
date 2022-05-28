@@ -79,6 +79,7 @@ class Options:
     background: bool
     album_only: bool
     mp3: bool
+    no_singles: bool
 
 
 class ResultTrack(TypedDict):
@@ -118,3 +119,4 @@ class Arguments:
     destination: Path
     channel_id: list[str]
     mp3: bool
+    no_singles: bool

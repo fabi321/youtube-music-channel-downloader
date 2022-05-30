@@ -59,14 +59,14 @@ def insert_artist(artist: types.Artist, no_singles: bool) -> int:
             insert into artist (channel_id, topic_channel_id, description, name, singles)
             values (?, ?, ?, ?, ?)
             returning aid
-            ''', (artist['channelId'], artist['topic_channel_id'], artist['description'], artist['name'], not no_singles))
+            ''', (artist['channelId'], artist['topic_channel_id'], artist['description'], artist['name'], int(not no_singles)))
             aid = cur.fetchone()
         else:
             cur.execute('''
                 update artist
                     set singles = ?
                 where aid = ?
-            ''', (not no_singles, aid[0]))
+            ''', (int(not no_singles), aid[0]))
     return aid[0]
 
 
@@ -74,7 +74,7 @@ def get_artists() -> list[tuple[str, bool]]:
     conn = get_connection()
     with conn:
         cur = conn.cursor()
-        cur.execute('select channel_id, single from artist')
+        cur.execute('select channel_id, singles from artist')
         res = cur.fetchall()
     return [(i[0], not bool(i[1])) for i in res]
 

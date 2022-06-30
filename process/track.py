@@ -12,16 +12,16 @@ from util.io import eprint
 
 def get_alternative_track_id(track: types.Track, album: Optional[types.Album], artist: types.Artist) -> Optional[str]:
     from fuzzywuzzy import fuzz
-    search = SearchVideos(f'"{artist["name"]} - Topic" "{album["title"]}" "{track["title"]}"')
+    search = SearchVideos(f'"{artist["name"]}" "provided to youtube by" "{album["title"]}" "{track["title"]}"')
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
-    search = SearchVideos(f'"{artist["name"]} - Topic" "{track["title"]}"')
+    search = SearchVideos(f'"{artist["name"]}" "provided to youtube by" "{track["title"]}"')
     for result in search.resultComponents:
         if result['title'].lower() == track['title'].lower():
             return result['id']
     title = track['title'].split('(')[0].strip()
-    search = SearchVideos(f'"{artist["name"]} - Topic" "{title}"')
+    search = SearchVideos(f'"{artist["name"]}" "provided to youtube by" "{title}"')
     for result in search.resultComponents:
         if result['title'].lower() == title.lower():
             return result['id']

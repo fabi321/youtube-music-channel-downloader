@@ -6,11 +6,15 @@ from mutagen.id3 import PictureType
 from base64 import b64encode
 from json import loads
 from ffmpeg import probe
+from typing import List
+
+from .types import AlbumArtist
 
 intended_i = -16.0
 intended_tp = -1.0
 intended_lra = 20.0
 nice_cmd = ['nice', '-n', '19']
+
 
 class Metadata:
     def __init__(self, track: types.Track, track_id: int, album: types.Album, artist: types.Artist, cover_path: Path):
@@ -19,6 +23,7 @@ class Metadata:
         self.album: str = album['title']
         self.year: str = album['year']
         self.track: str = str(track_id)
+        self.artists: List[AlbumArtist] = track['artists']
         thumbnail: types.Thumbnail = album['thumbnails'][-1]
         picture = Picture()
         with open(cover_path, 'rb') as f:
@@ -48,6 +53,11 @@ class Metadata:
         for (name, value) in all_attributes.items():
             result.append('-metadata')
             result.append(f'{name}={value}')
+        if not types.Options.mp3:
+            unhandled: List[AlbumArtist] = [artist for artist in self.artists if artist['name'] != self.artist]
+            for artist in unhandled:
+                result.append('-metadata')
+                result.append(f'ARTIST={artist["name"]}')
         return result
 
 def level_and_combine_audio(tmp_file: str, track_path: Path, metadata: Metadata) -> bool:

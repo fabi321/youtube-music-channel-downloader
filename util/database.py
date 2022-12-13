@@ -32,7 +32,7 @@ create table if not exists artist (
 create table if not exists album (
     alid integer primary key,
     title text not null,
-    aid integer not null references artist,
+    aid integer not null references artist on delete cascade,
     year integer not null,
     track_count integer not null,
     duration integer not null
@@ -40,7 +40,7 @@ create table if not exists album (
 create table if not exists track (
     tid integer primary key,
     title text not null,
-    alid integer not null references album,
+    alid integer not null references album on delete cascade,
     video_id text not null,
     duration integer not null,
     track_id integer not null

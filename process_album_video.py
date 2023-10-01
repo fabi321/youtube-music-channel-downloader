@@ -8,6 +8,7 @@ from json import loads
 
 from pathvalidate import sanitize_filename
 from pytube import YouTube, Stream
+from tqdm import tqdm
 
 from util import types, convert_audio, database
 from util.io import eprint, join_and_create
@@ -109,7 +110,7 @@ def process_args(args: Arguments):
     ]
     album_path = args.destination / artist / album
     album_path.mkdir(parents=True, exist_ok=True)
-    for track_id, timestamp, name, next_timestamp in extended_timestamps:
+    for track_id, timestamp, name, next_timestamp in tqdm(extended_timestamps):
         metadata: convert_audio.Metadata = convert_audio.Metadata(name, artist, album, year, track_id, [])
         extension = 'mp3' if types.Options.mp3 else 'opus'
         track_path: Path = album_path / f'{track_id:02} - {sanitize_filename(name)}.{extension}'

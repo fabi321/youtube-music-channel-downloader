@@ -51,13 +51,12 @@ def get_description(video: YouTube) -> str:
     while True:
         letter = video.watch_html[i]
         desc += letter  # letter can be added in any case
+        i += 1
         if letter == '\\':
-            desc += video.watch_html[i + 1]
-            i += 2
+            desc += video.watch_html[i]
+            i += 1
         elif letter == '"':
             break
-        else:
-            i += 1
     return loads(desc)
 
 

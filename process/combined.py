@@ -21,6 +21,8 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
             process_album_track(*args)
             error_result = None
             break
+        except RuntimeError as e:
+            error_result = str(e)
         except:
             error_result = traceback.format_exc()
     album: types.Album = args[1]
@@ -38,6 +40,7 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
         eprint(f'Warning: could not process track {track["title"]} from album {album["title"]}')
     else:
         result_track: types.ResultTrack = {
+            'id': track['videoId'],
             'title': track['title'],
             'album': album['title'],
             'artist': artist['name'],

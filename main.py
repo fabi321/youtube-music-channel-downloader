@@ -47,7 +47,7 @@ def add_channels_from_channel_ids(destination: Path, channel_ids: list[str], res
 
 
 def parse_args() -> types.Arguments:
-    parser = argparse.ArgumentParser(description='Download all music videos from a "* - Topic" channel\n'
+    parser = argparse.ArgumentParser(description='Download all music videos from a "* - Topic" channel.\n'
                                                  'It will check all existing channels if neither names nor'
                                                  ' ChannelIds are supplied')
     default_thread_count: int = os.cpu_count()//2 or 5

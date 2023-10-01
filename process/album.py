@@ -11,7 +11,7 @@ def get_albums_for_artist(artist: types.Artist) -> Optional[list[types.AlbumResu
     if 'albums' in artist:
         params: str = artist['albums'].get('params')
         if params:
-            param_result = ytmusic.get_artist_albums(artist['channelId'], params)
+            param_result = ytmusic.get_artist_albums(artist['albums']['browseId'], params)
             if param_result:
                 return param_result
         return artist['albums']['results']
@@ -37,10 +37,13 @@ TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int]
 
 
 def process_album(album: types.AlbumResult, artist: types.Artist, artist_destination: Path, tracks: list[TrackInput]):
-    album: types.Album = ytmusic.get_album(album['browseId'])
+    browse_id: str = album['browseId']
+    album: types.Album = ytmusic.get_album(browse_id)
+    album['browseId'] = browse_id
+    album['path'] = database.get_unique_album_path(album, artist)
     alid: int = database.insert_album(album, artist)
     db_tracks: list[str] = database.get_tracks_for_album(alid)
-    album_destination: Path = join_and_create(artist_destination, album['title'])
+    album_destination: Path = join_and_create(artist_destination, album['path'])
     cover_path = process_thumbnail(album, album_destination)
     for i in range(len(album['tracks'])):
         track: types.Track = album['tracks'][i]

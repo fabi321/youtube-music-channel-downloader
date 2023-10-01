@@ -23,19 +23,23 @@ def init(path: pathlib.Path):
         conn.executescript("""
 create table if not exists artist (
     aid integer primary key,
+    name text not null,
     channel_id text not null unique,
     topic_channel_id text not null,
     description text,
-    name text not null,
-    singles integer not null
+    singles integer not null,
+    path text not null unique
 );
 create table if not exists album (
     alid integer primary key,
+    browse_id text not null unique,
     title text not null,
     aid integer not null references artist on delete cascade,
     year integer not null,
     track_count integer not null,
-    duration integer not null
+    duration integer not null,
+    path text not null,
+    unique (path, aid)
 );
 create table if not exists track (
     tid integer primary key,
@@ -48,6 +52,18 @@ create table if not exists track (
         """)
 
 
+def get_unique_artist_path(artist: types.Artist) -> str:
+    conn = get_connection()
+    if result := conn.execute('select path from artist where channel_id = ?', (artist['channelId'],)).fetchone():
+        return result[0]
+    result: str = artist['name']
+    iteration: int = 0
+    while conn.execute('select * from artist where path = ?', (result,)).fetchone():
+        iteration += 1
+        result = f'{artist["name"]}-{iteration}'
+    return result
+
+
 def insert_artist(artist: types.Artist, no_singles: bool) -> int:
     conn = get_connection()
     with conn:
@@ -56,10 +72,10 @@ def insert_artist(artist: types.Artist, no_singles: bool) -> int:
         aid = cur.fetchone()
         if not aid:
             cur.execute('''
-            insert into artist (channel_id, topic_channel_id, description, name, singles)
-            values (?, ?, ?, ?, ?)
+            insert into artist (name, channel_id, topic_channel_id, description, singles, path)
+            values (?, ?, ?, ?, ?, ?)
             returning aid
-            ''', (artist['channelId'], artist['topic_channel_id'], artist['description'], artist['name'], int(not no_singles)))
+            ''', (artist['name'], artist['channelId'], artist['topic_channel_id'], artist['description'], int(not no_singles), artist['path']))
             aid = cur.fetchone()
         else:
             cur.execute('''
@@ -88,29 +104,41 @@ def get_artist(channel_id: str) -> int:
     return aid[0]
 
 
+def get_unique_album_path(album: types.Album, artist: types.Artist) -> str:
+    conn = get_connection()
+    if result := conn.execute('select path from album where browse_id = ?', (album['browseId'],)).fetchone():
+        return result[0]
+    result: str = album['title']
+    iteration: int = 0
+    aid: int = get_artist(artist['channelId'])
+    while conn.execute('select path from album where path = ? and aid = ?', (result, aid)).fetchone():
+        iteration += 1
+        result = f'{album["title"]}-{iteration}'
+    return result
+
+
 def insert_album(album: types.Album, artist: types.Artist) -> int:
     conn = get_connection()
     with conn:
-        aid = get_artist(artist['channelId'])
         cur = conn.cursor()
-        cur.execute('select alid from album where aid = ? and title = ?', (aid, album['title']))
+        cur.execute('select alid from album where browse_id = ?', (album['browseId'],))
         alid = cur.fetchone()
         if not alid:
+            aid = get_artist(artist['channelId'])
             cur.execute('''
-            insert into album (title, aid, year, track_count, duration)
-            values (?, ?, ?, ?, ?)
+            insert into album (browse_id, title, aid, year, track_count, duration, path)
+            values (?, ?, ?, ?, ?, ?, ?)
             returning alid
-            ''', (album['title'], aid, int(album['year']), album['trackCount'], album['duration_seconds']))
+            ''', (album['browseId'], album['title'], aid, int(album.get('year', '0')), album['trackCount'], album['duration_seconds'], album['path']))
             alid = cur.fetchone()
     return alid[0]
 
 
-def check_album_exists(album: types.AlbumResult, artist: types.Artist) -> bool:
+def check_album_exists(album: types.AlbumResult) -> bool:
     conn = get_connection()
     with conn:
-        aid = get_artist(artist['channelId'])
         cur = conn.cursor()
-        cur.execute('select alid from album where aid = ? and title = ?', (aid, album['title']))
+        cur.execute('select alid from album where browse_id', (album['browseId'],))
         alid = cur.fetchone()
     return alid is not None
 

@@ -1,4 +1,4 @@
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, List
 from pathlib import Path
 
 
@@ -43,6 +43,7 @@ class Artist(TypedDict):
     thumbnails: list[Thumbnail]
     albums: AlbumResults
     singles: SingleResults
+    path: str
 
 
 class AlbumArtist(TypedDict):
@@ -72,6 +73,8 @@ class Album(TypedDict):
     duration_seconds: int
     tracks: list[Track]
     audioPlaylistId: str
+    browseId: str
+    path: str
 
 
 class Options:
@@ -120,3 +123,25 @@ class Arguments:
     channel_id: list[str]
     mp3: bool
     no_singles: bool
+
+
+class YoutubeSearchVideoResultChannel(TypedDict):
+    name: str
+    id: str
+    thumbnails: List[Thumbnail]
+    link: str
+
+
+class YoutubeSearchDescriptionSnippet(TypedDict):
+    text: str
+
+
+class YoutubeSearchVideoResult(TypedDict):
+    id: str
+    title: str
+    publishedTime: str
+    duration: str
+    thumbnails: List[Thumbnail]
+    channel: YoutubeSearchVideoResultChannel
+    descriptionSnippet: list[YoutubeSearchDescriptionSnippet]
+    link: str

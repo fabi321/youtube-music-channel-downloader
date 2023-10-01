@@ -21,7 +21,7 @@ class Metadata:
         self.title: str = track['title']
         self.artist: str = artist['name']
         self.album: str = album['title']
-        self.year: str = album['year']
+        self.year: str = album.get('year', '0')
         self.track: str = str(track_id)
         self.artists: List[AlbumArtist] = track['artists']
         thumbnail: types.Thumbnail = album['thumbnails'][-1]

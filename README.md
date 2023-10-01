@@ -47,6 +47,7 @@ python process_album_video.py <path to library> <video id>
 It will ask to add artist and album info, tell you the inferred list of songs, and finally process them.
 This utility won't add songs to the libraries database, as the database is reserved for automatic fetching.
 If there are issues with the inferred title list, feel free to open an issue.
+This utility neither does multithreading, nor supports background mode.
 
 ## Usage:
 ```

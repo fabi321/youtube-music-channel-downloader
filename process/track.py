@@ -110,7 +110,7 @@ def process_track(
     except exceptions.AgeRestrictedError:
         raise RuntimeError('Age restricted')
     track_tmp_path = stream.download(output_path=str(track_path.parent), filename_prefix=str(track_id))
-    metadata: convert_audio.Metadata = convert_audio.Metadata(track, track_id, album, artist, cover_path)
+    metadata: convert_audio.Metadata = convert_audio.Metadata.from_ytmusic(track, track_id, album, artist, cover_path)
     convert_success: bool = convert_audio.level_and_combine_audio(track_tmp_path, track_path, metadata)
     if convert_success:
         Path(track_tmp_path).unlink()

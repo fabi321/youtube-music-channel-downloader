@@ -39,6 +39,15 @@ python main.py <path to library>
 This will check every album, even already discovered ones, and check all songs.
 Has the side effect of retrying all previously failed songs.
 
+### Add an "album video"
+There are some videos, that include an entire album. There is a utility to download, split and normalize such videos
+```commandline
+python process_album_video.py <path to library> <video id>
+```
+It will ask to add artist and album info, tell you the inferred list of songs, and finally process them.
+This utility won't add songs to the libraries database, as the database is reserved for automatic fetching.
+If there are issues with the inferred title list, feel free to open an issue.
+
 ## Usage:
 ```
 usage: main.py [-h] [--threads THREADS] [--background] [--album-only] [--channel-id [CHANNEL_ID ...]] [--mp3] [--no-singles] D [N ...]

@@ -48,7 +48,8 @@ def score_result(
         if album_title in description:
             score += 2
     # the year is usually included as copyright, might be wrong
-    if album['year'] in description:
+    # The null character is definitely not present in the description, in case a year is missing
+    if album.get('year', '\0') in description:
         score += 1
     return score, result['id']
 

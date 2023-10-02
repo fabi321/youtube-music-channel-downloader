@@ -109,11 +109,11 @@ def level_and_combine_audio(
     output_lines = Popen(audio_level_command, universal_newlines=True, stdout=PIPE, stderr=PIPE)
     output_lines = output_lines.communicate()[1].split('\n')
     json = loads('\n'.join(output_lines[-13:-1]))
-    assert -99 <= json["input_i"] <= 0, "measured I out of range"
-    assert 0 <= json["input_lra"] <= 99, "measured LRA out of range"
-    assert -99 <= json["input_tp"] <= 99, "measured TP out of range"
-    assert -99 <= json["input_thresh"] <= 0, "measured thresh out of range"
-    assert -99 <= json["target_offset"] <= 99, "target offset out of range"
+    assert -99 <= float(json["input_i"]) <= 0, "measured I out of range"
+    assert 0 <= float(json["input_lra"]) <= 99, "measured LRA out of range"
+    assert -99 <= float(json["input_tp"]) <= 99, "measured TP out of range"
+    assert -99 <= float(json["input_thresh"]) <= 0, "measured thresh out of range"
+    assert -99 <= float(json["target_offset"]) <= 99, "target offset out of range"
     loudnorm = (f'loudnorm=I={INTENDED_I}:TP={INTENDED_TP}:LRA={INTENDED_LRA}:'
                 f'measured_I={json["input_i"]}:measured_LRA={json["input_lra"]}:'
                 f'measured_TP={json["input_tp"]}:measured_thresh={json["input_thresh"]}:'

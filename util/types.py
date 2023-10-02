@@ -98,10 +98,10 @@ class ResultAlbum(TypedDict):
 
 
 class ResultError(TypedDict):
-    title: str
+    title: Optional[str]
     album: str
     artist: str
-    id: str
+    id: Optional[str]
     traceback: str
 
 

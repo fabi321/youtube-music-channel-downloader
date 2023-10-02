@@ -93,7 +93,7 @@ songs and albums, structured as follows:
   },
   "errors": [
     {
-      "title": "<title>",
+      "title": "<title, might be null if it's an album error>",
       "album": "<album>",
       "artist": "<artist>",
       "traceback": "<traceback or short description>",

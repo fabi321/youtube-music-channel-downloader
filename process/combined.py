@@ -23,6 +23,8 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
             break
         except RuntimeError as e:
             error_result = str(e)
+        except AssertionError as e:
+            error_result = f'Failed assertion {e}'
         except:
             error_result = traceback.format_exc()
     album: types.Album = args[1]
@@ -62,7 +64,18 @@ def process_artists(channels: list[tuple[str, bool]], destination: Path, results
         return
     tracks: list[TrackInput] = []
     for album in tqdm(albums, desc='Processing albums', unit='album', file=progress_output):
-        process_album(album[0], album[1], album[2], tracks)
+        try:
+            process_album(album[0], album[1], album[2], tracks)
+        except:
+            error: types.ResultError = {
+                'title': None,
+                'album': album[0]['title'],
+                'artist': album[1]['name'],
+                'traceback': traceback.format_exc(),
+                'id': album[0]['browseId'],
+            }
+            results[2].append(error)
+            eprint(f'{album[0]["title"]} from {album[1]["name"]} had error\n' + traceback.format_exc())
     if not tracks:
         return
     threads = types.Options.processing_threads

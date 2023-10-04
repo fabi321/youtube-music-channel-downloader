@@ -138,7 +138,7 @@ def check_album_exists(album: types.AlbumResult) -> bool:
     conn = get_connection()
     with conn:
         cur = conn.cursor()
-        cur.execute('select alid from album where browse_id', (album['browseId'],))
+        cur.execute('select alid from album where browse_id = ?', (album['browseId'],))
         alid = cur.fetchone()
     return alid is not None
 

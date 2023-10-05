@@ -65,19 +65,13 @@ def search_and_pick(search_query: str, track: types.Track, album: types.Album) -
 
 
 def get_alternative_track_id(track: types.Track, album: types.Album, artist: types.Artist) -> Optional[str]:
+    short_title: str = track['title'].split('(')[0].split('"')[0]
+    short_album: str = album['title'].split('(')[0].split('"')[0]
     result = search_and_pick(
-        f'"{artist["name"]} - topic" "provided to youtube by" "{album["title"]}" "{track["title"]}"',
+        f'{artist["name"]} - topic "provided to youtube by" {album["title"]} {track["title"]} "{short_album}" "{short_title}"',
         track,
         album,
     )
-    if not result:
-        short_title: str = track['title'].split('(')[0].split('"')[0]
-        short_album: str = album['title'].split('(')[0].split('"')[0]
-        result = search_and_pick(
-            f'"{artist["name"]} - topic" "provided to youtube by" "{short_album}" "{short_title}"',
-            track,
-            album,
-        )
     return result
 
 

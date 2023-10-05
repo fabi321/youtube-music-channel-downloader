@@ -66,6 +66,22 @@ VIDEOS: list[tuple[str, str, str, str, str]] = [
     ("John the Revelator (Single Version)", '3:17', "Playing The Angel (The 12\" Singles)", "Depeche Mode", "A-pB7idn5d4"),
     # Album is without brackets
     ("Cover Me", '4:52', "Spirit (Deluxe)", "Depeche Mode", "1ptP7O1aCh8"),
+    # The Metallica Blacklist, many songs with the same name but from different bands, by "Metallica"
+    # as these are released under the names of the artists performing them, it's hard to find them
+    # Alessia Cara and The Warning
+    ("Enter Sandman", "4:23", "The Metallica Blacklist", "Metallica", "BA17A9SNsd8"),
+    # Mac DeMarco
+    ("Enter Sandman", "5:47", "The Metallica Blacklist", "Metallica", "8rtrvlQw8-k"),
+    # Ghost
+    ("Enter Sandman", "3:52", "The Metallica Blacklist", "Metallica", "lSDhSNY1C7I"),
+    # Sam Fender
+    # ("Sad But True (Live)", "3:51", "The Metallica Blacklist", "Metallica", "EPrKqqdNoNs"),
+    # Feel free to open a pr in order to resolve this. The string that got me there was
+    # "provided to youtube by" "metallica blacklist" "sad but true" "sam fender"
+    # Mexican Institute Of Sound
+    # ("Sad But True (mit La Perla, Gera MX & Metallica)", "4:32", "The Metallica Blacklist", "Metallica", "bsA8Vr3tZII"),
+    # Feel free to open a pr in order to resolve this. The string that got me there was
+    # "provided to youtube by" "metallica blacklist" "sad but true" "mexican institute of sound"
 ]
 
 

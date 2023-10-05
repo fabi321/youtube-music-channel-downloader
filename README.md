@@ -108,3 +108,9 @@ there are short descriptions for known issues, currently the following issues ex
    - Usually means that there are actually no videos on YouTube
    - If you have this issue, and there is a valid video that should have been picked, open an issue
  - Age restricted
+
+# Contributing
+
+If you notice any wrong song "improvements", feel free to open an issue. If you want to help to refine song
+improvements, there are a few commented test cases that don't work yet, fixing these would help in some (rare) edge
+cases.

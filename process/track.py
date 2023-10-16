@@ -76,22 +76,17 @@ def get_alternative_track_id(track: types.Track, album: types.Album, artist: typ
 
 
 def process_track(
-        track: types.Track,
-        artist: types.Artist,
-        track_path: Path,
-        cover_path: Path,
-        track_id: int,
-        album: types.Album
+    track: types.Track,
+    artist: types.Artist,
+    track_path: Path,
+    cover_path: Path,
+    track_id: int,
+    album: types.Album,
+    video_url: Optional[str],
 ) -> bool:
-    video: Optional[YouTube] = None
-    if track['videoId']:
-        video = YouTube(f'https://youtube.com/watch?v={track["videoId"]}')
-    if not video or video.channel_id != artist['topic_channel_id']:
-        video_id = get_alternative_track_id(track, album, artist)
-        if video_id:
-            video = YouTube(f'https://youtube.com/watch?v={video_id}')
-    if not video:
+    if not video_url:
         raise RuntimeError('Did not find any matching video at all')
+    video: Optional[YouTube] = YouTube(video_url)
     stream: Optional[Stream]
     try:
         if types.Options.mp3:
@@ -112,12 +107,20 @@ def process_track(
     return convert_success
 
 
-def process_album_track(track_id: int, album: types.Album, artist: types.Artist, album_destination: Path, cover_path: Path, alid: int):
+def process_album_track(
+    track_id: int,
+    album: types.Album,
+    artist: types.Artist,
+    album_destination: Path,
+    cover_path: Path,
+    alid: int,
+    video_url: Optional[str],
+):
     track: types.Track = album['tracks'][track_id]
     track_id += 1
     extension = 'mp3' if types.Options.mp3 else 'opus'
     track_path: Path = album_destination.joinpath(f'{track_id:02} - {sanitize_filename(track["title"])}.{extension}')
-    convert_success: bool = process_track(track, artist, track_path, cover_path, track_id, album)
+    convert_success: bool = process_track(track, artist, track_path, cover_path, track_id, album, video_url)
     if convert_success:
         database.insert_track(alid, track, track_id)
     else:

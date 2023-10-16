@@ -5,6 +5,7 @@ from urllib.request import urlretrieve
 from process.util import ytmusic
 from util import types, database
 from util.io import join_and_create
+from .util import match_playlist_and_album
 
 
 def get_albums_for_artist(artist: types.Artist) -> Optional[list[types.AlbumResult]]:
@@ -33,7 +34,7 @@ def process_thumbnail(album: types.Album, album_destination: Path):
     return cover_path
 
 
-TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int]
+TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int, Optional[str]]
 
 
 def process_album(album: types.AlbumResult, artist: types.Artist, artist_destination: Path, tracks: list[TrackInput]):
@@ -45,8 +46,9 @@ def process_album(album: types.AlbumResult, artist: types.Artist, artist_destina
     db_tracks: list[str] = database.get_tracks_for_album(alid)
     album_destination: Path = join_and_create(artist_destination, album['path'])
     cover_path = process_thumbnail(album, album_destination)
+    video_urls = match_playlist_and_album(album)
     for i in range(len(album['tracks'])):
         track: types.Track = album['tracks'][i]
         video_id: str = database.get_video_id_for_track(track)
         if video_id not in db_tracks:
-            tracks.append((i, album, artist, album_destination, cover_path, alid))
+            tracks.append((i, album, artist, album_destination, cover_path, alid, video_urls[i]))

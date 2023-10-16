@@ -11,30 +11,30 @@ def get_album(
 ) -> Album:
     conv_tracks: list[Track] = [
         {
-            'videoId': '...',
-            'title': track,
-            'artists': [],
-            'album': '...',
-            'duration': '...',
-            'duration_seconds': 0,
-            'thumbnails': None,
-            'isAvailable': True,
-            'isExplicit': False,
+            "videoId": "...",
+            "title": track,
+            "artists": [],
+            "album": "...",
+            "duration": "...",
+            "duration_seconds": 0,
+            "thumbnails": None,
+            "isAvailable": True,
+            "isExplicit": False,
         }
         for track in tracks
     ]
     album: Album = {
-        'title': album_title,
-        'thumbnails': [],
-        'artists': [],
-        'year': '...',
-        'trackCount': 0,
-        'duration': '...',
-        'duration_seconds': 0,
-        'tracks': conv_tracks,
-        'audioPlaylistId': playlist_id,
-        'browseId': '...',
-        'path': '...',
+        "title": album_title,
+        "thumbnails": [],
+        "artists": [],
+        "year": "...",
+        "trackCount": 0,
+        "duration": "...",
+        "duration_seconds": 0,
+        "tracks": conv_tracks,
+        "audioPlaylistId": playlist_id,
+        "browseId": "...",
+        "path": "...",
     }
     return album
 
@@ -54,7 +54,7 @@ VIDEOS: list[tuple[tuple[str, ...], str, str, tuple[str, ...]]] = [
             "People Are Good",
             "Always You",
             "Never Let Me Go",
-            "Speak To Me"
+            "Speak To Me",
         ),
         "Memento Mori",
         "OLAK5uy_kBh1orlQqYtUQg2DxVgQjE8hXv91Ra14s",
@@ -77,7 +77,7 @@ VIDEOS: list[tuple[tuple[str, ...], str, str, tuple[str, ...]]] = [
         (
             "Given Up",
             "Valentine's Day (Live at Festhalle, Frankfurt, DE, 1/20/2008)",
-            "In Between (Live at the O2 Arena, London, England, 1/29/2008)"
+            "In Between (Live at the O2 Arena, London, England, 1/29/2008)",
         ),
         "Given Up",
         "OLAK5uy_mj9q02ANDBRiZY3Mc2OMDSUhuqRgPlx_U",

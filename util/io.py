@@ -18,7 +18,7 @@ def eprint(*args, **kwargs):
 
 def get_output_pipe():
     if types.Options().background:
-        return open(os.devnull, 'w')
+        return open(os.devnull, "w")
     else:
         return sys.stderr
 

@@ -14,7 +14,7 @@ from util import types, convert_audio, database
 from util.io import eprint, join_and_create
 
 
-ROW_REGEX: re.Pattern = re.compile(r'((?:\d?\d:)??\d?\d:\d\d)(.*)$')
+ROW_REGEX: re.Pattern = re.compile(r"((?:\d?\d:)??\d?\d:\d\d)(.*)$")
 
 
 class Arguments:
@@ -27,18 +27,31 @@ class Arguments:
 
 
 def init(destination: Path):
-    join_and_create(destination, '.')
+    join_and_create(destination, ".")
 
 
 def parse_args() -> Arguments:
-    parser = argparse.ArgumentParser(description='Download all titles from a video containing an album.\n'
-                                                 'WARNING: This utility does not interact with the database')
-    parser.add_argument('--artist', '-a', type=str, nargs='?', help='The artist')
-    parser.add_argument('--album', '-b', type=str, nargs='?', help='The album')
-    parser.add_argument('--year', '-y', type=str, nargs='?', help='The year of publishing')
-    parser.add_argument('--mp3', action='store_true', help='produce mp3 files instead of ogg files')
-    parser.add_argument('destination', metavar='D', type=Path, help='The directory of the music collection')
-    parser.add_argument('video_id', metavar='V', type=str, help='The video url or video id')
+    parser = argparse.ArgumentParser(
+        description="Download all titles from a video containing an album.\n"
+        "WARNING: This utility does not interact with the database"
+    )
+    parser.add_argument("--artist", "-a", type=str, nargs="?", help="The artist")
+    parser.add_argument("--album", "-b", type=str, nargs="?", help="The album")
+    parser.add_argument(
+        "--year", "-y", type=str, nargs="?", help="The year of publishing"
+    )
+    parser.add_argument(
+        "--mp3", action="store_true", help="produce mp3 files instead of ogg files"
+    )
+    parser.add_argument(
+        "destination",
+        metavar="D",
+        type=Path,
+        help="The directory of the music collection",
+    )
+    parser.add_argument(
+        "video_id", metavar="V", type=str, help="The video url or video id"
+    )
     args: Arguments = parser.parse_args(namespace=Arguments())
     types.Options.mp3 = args.mp3
     return args
@@ -53,7 +66,7 @@ def get_description(video: YouTube) -> str:
         letter = video.watch_html[i]
         desc += letter  # letter can be added in any case
         i += 1
-        if letter == '\\':
+        if letter == "\\":
             desc += video.watch_html[i]
             i += 1
         elif letter == '"':
@@ -62,14 +75,14 @@ def get_description(video: YouTube) -> str:
 
 
 def download_video(video_id: str, folder: Path) -> tuple[str, str]:
-    if 'youtube' not in video_id:
-        video_id = f'https://youtube.com/watch?v={video_id}'
+    if "youtube" not in video_id:
+        video_id = f"https://youtube.com/watch?v={video_id}"
     video: YouTube = YouTube(video_id)
     stream: Stream
     if types.Options.mp3:
-        stream = video.streams.get_audio_only(subtype='mp4')
+        stream = video.streams.get_audio_only(subtype="mp4")
     else:
-        stream = video.streams.get_audio_only(subtype='webm')
+        stream = video.streams.get_audio_only(subtype="webm")
     if not stream:
         stream = video.streams.get_audio_only()
     track_tmp_path: str = stream.download(output_path=str(folder))
@@ -79,7 +92,7 @@ def download_video(video_id: str, folder: Path) -> tuple[str, str]:
 def find_track_information(description: str) -> list[tuple[str, str]]:
     longest_list: list[tuple[str, str]] = []
     current_list: list[tuple[str, str]] = []
-    for row in description.split('\n'):
+    for row in description.split("\n"):
         row = row.strip()
         if match := ROW_REGEX.match(row):
             timestamp: str = match.group(1)
@@ -98,23 +111,36 @@ def process_args(args: Arguments):
     init(args.destination)
     artist: str = args.artist or input("Please enter the artist name ->")
     album: str = args.album or input("Please enter the album name ->")
-    year: str = args.year or input("Please enter the year the album has been published ->")
+    year: str = args.year or input(
+        "Please enter the year the album has been published ->"
+    )
     tmp_path, description = download_video(args.video_id, args.destination)
     timestamps: list[tuple[str, str]] = find_track_information(description)
-    print('Found the following timestamps:')
+    print("Found the following timestamps:")
     for timestamp, name in timestamps:
-        print(f'{timestamp}: {name}')
+        print(f"{timestamp}: {name}")
     extended_timestamps: list[tuple[int, str, str, Optional[str]]] = [
-        (i + 1, timestamps[i][0], timestamps[i][1], timestamps[i+1][0] if i + 1 < len(timestamps) else None)
+        (
+            i + 1,
+            timestamps[i][0],
+            timestamps[i][1],
+            timestamps[i + 1][0] if i + 1 < len(timestamps) else None,
+        )
         for i in range(len(timestamps))
     ]
     album_path = args.destination / artist / album
     album_path.mkdir(parents=True, exist_ok=True)
     for track_id, timestamp, name, next_timestamp in tqdm(extended_timestamps):
-        metadata: convert_audio.Metadata = convert_audio.Metadata(name, artist, album, year, track_id, [])
-        extension = 'mp3' if types.Options.mp3 else 'opus'
-        track_path: Path = album_path / f'{track_id:02} - {sanitize_filename(name)}.{extension}'
-        convert_audio.level_and_combine_audio(tmp_path, track_path, metadata, timestamp, next_timestamp)
+        metadata: convert_audio.Metadata = convert_audio.Metadata(
+            name, artist, album, year, track_id, []
+        )
+        extension = "mp3" if types.Options.mp3 else "opus"
+        track_path: Path = (
+            album_path / f"{track_id:02} - {sanitize_filename(name)}.{extension}"
+        )
+        convert_audio.level_and_combine_audio(
+            tmp_path, track_path, metadata, timestamp, next_timestamp
+        )
     Path(tmp_path).unlink()
 
 

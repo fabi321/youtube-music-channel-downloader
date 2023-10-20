@@ -114,11 +114,11 @@ def process_args(args: Arguments):
     year: str = args.year or input(
         "Please enter the year the album has been published ->"
     )
-    tmp_path, description = download_video(args.video_id, args.destination)
     timestamps: list[tuple[str, str]] = find_track_information(description)
     print("Found the following timestamps:")
     for timestamp, name in timestamps:
         print(f"{timestamp}: {name}")
+    tmp_path, description = download_video(args.video_id, args.destination)
     extended_timestamps: list[tuple[int, str, str, Optional[str]]] = [
         (
             i + 1,

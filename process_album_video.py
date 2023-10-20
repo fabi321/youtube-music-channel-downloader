@@ -74,10 +74,7 @@ def get_description(video: YouTube) -> str:
     return loads(desc)
 
 
-def download_video(video_id: str, folder: Path) -> tuple[str, str]:
-    if "youtube" not in video_id:
-        video_id = f"https://youtube.com/watch?v={video_id}"
-    video: YouTube = YouTube(video_id)
+def download_video(video: YouTube, folder: Path) -> str:
     stream: Stream
     if types.Options.mp3:
         stream = video.streams.get_audio_only(subtype="mp4")
@@ -86,7 +83,7 @@ def download_video(video_id: str, folder: Path) -> tuple[str, str]:
     if not stream:
         stream = video.streams.get_audio_only()
     track_tmp_path: str = stream.download(output_path=str(folder))
-    return track_tmp_path, get_description(video)
+    return track_tmp_path
 
 
 def find_track_information(description: str) -> list[tuple[str, str]]:
@@ -114,11 +111,15 @@ def process_args(args: Arguments):
     year: str = args.year or input(
         "Please enter the year the album has been published ->"
     )
-    timestamps: list[tuple[str, str]] = find_track_information(description)
+    video_id: str = args.video_id
+    if "youtube" not in video_id:
+        video_id = f"https://youtube.com/watch?v={video_id}"
+    video: YouTube = YouTube(video_id)
+    timestamps: list[tuple[str, str]] = find_track_information(get_description(video))
     print("Found the following timestamps:")
     for timestamp, name in timestamps:
         print(f"{timestamp}: {name}")
-    tmp_path, description = download_video(args.video_id, args.destination)
+    tmp_path = download_video(video, args.destination)
     extended_timestamps: list[tuple[int, str, str, Optional[str]]] = [
         (
             i + 1,

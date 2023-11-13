@@ -37,8 +37,6 @@ def process_artist(
         for album in albums:
             if not types.Options.album_only or not database.check_album_exists(album):
                 global_albums.append((album, artist, artist_destination))
-    else:
-        bprint(f"No albums found for channel {channel_id}")
     if singles and not no_singles:
         for single in singles:
             if not types.Options.album_only or not database.check_album_exists(single):

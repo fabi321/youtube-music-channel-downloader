@@ -65,7 +65,10 @@ def process_artists(
     for channel in tqdm(
         channels, desc="Processing artists", unit="artist", file=progress_output
     ):
-        process_artist(channel[0], destination, albums, channel[1])
+        try:
+            process_artist(channel[0], destination, albums, channel[1])
+        except:
+            eprint(f'{channel[0]} had error\n' + traceback.format_exc())
     if not albums:
         return
     tracks: list[TrackInput] = []

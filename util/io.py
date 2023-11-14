@@ -30,8 +30,5 @@ def always_gen(n: int, v):
 
 def join_and_create(base: Path, added: str) -> Path:
     joined = base.joinpath(sanitize_filename(added))
-    try:
-        joined.mkdir()
-    except FileExistsError:
-        pass
+    joined.mkdir(parents=True, exist_ok=True)
     return joined

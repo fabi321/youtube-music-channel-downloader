@@ -7,4 +7,4 @@ pathvalidate
 ffmpeg-python
 fuzzywuzzy[speedup]
 python-Levenshtein
-
+psutil

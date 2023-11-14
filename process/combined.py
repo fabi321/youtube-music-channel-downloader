@@ -9,7 +9,7 @@ from process.album import process_album, TrackInput
 from process.artist import process_artist, AlbumInput
 
 from process.track import process_album_track
-from util import types
+from util import types, database
 from util.io import eprint, get_output_pipe, always_gen
 
 
@@ -69,7 +69,7 @@ def process_artists(
             process_artist(channel[0], destination, albums, channel[1])
         except:
             eprint(f'{channel[0]} had error\n' + traceback.format_exc())
-    if not albums:
+    if not albums or database.daemon_running():
         return
     tracks: list[TrackInput] = []
     for album in tqdm(

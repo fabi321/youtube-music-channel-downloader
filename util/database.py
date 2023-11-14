@@ -2,6 +2,9 @@ import sqlite3
 import pathlib
 import threading
 from util import types
+from typing import Optional
+import os
+import psutil
 
 db_path: pathlib.Path
 thread_local = threading.local()
@@ -29,7 +32,8 @@ create table if not exists artist (
     topic_channel_id text not null,
     description text,
     singles integer not null,
-    path text not null unique
+    path text not null unique,
+    last_update integer not null default 0
 );
 create table if not exists album (
     alid integer primary key,
@@ -40,6 +44,7 @@ create table if not exists album (
     track_count integer not null,
     duration integer not null,
     path text not null,
+    last_update integer not null default 0,
     unique (path, aid)
 );
 create table if not exists track (
@@ -50,6 +55,11 @@ create table if not exists track (
     duration integer not null,
     track_id integer not null
 );
+create table if not exists daemon (
+    pid integer primary key
+);
+create index if not exists artist_last_updated on artist (last_update);
+create index if not exists album_last_updated on album (last_update);
         """
         )
 
@@ -123,6 +133,20 @@ def get_artist(channel_id: str) -> int:
     return aid[0]
 
 
+def get_least_recently_updated_artist() -> Optional[tuple[int, str]]:
+    conn = get_connection()
+    with conn:
+        cur = conn.execute("select aid, channel_id from artist order by last_update asc limit 1")
+        aid = cur.fetchone()
+    return aid
+
+
+def update_artist(aid: int):
+    conn = get_connection()
+    with conn:
+        conn.execute("update artist set last_update = strftime('%s', 'now') where aid = ?", (aid,))
+
+
 def get_unique_album_path(album: types.Album, artist: types.Artist) -> str:
     conn = get_connection()
     if result := conn.execute(
@@ -177,6 +201,49 @@ def check_album_exists(album: types.AlbumResult) -> bool:
     return alid is not None
 
 
+def get_least_recently_updated_album() -> Optional[tuple[int, int]]:
+    conn = get_connection()
+    with conn:
+        cur = conn.execute("select alid, last_update from album order by last_update asc limit 1")
+        alid = cur.fetchone()
+    return alid
+
+
+def update_album(alid: int):
+    conn = get_connection()
+    with conn:
+        conn.execute("update album set last_update = strftime('%s', 'now') where alid = ?", (alid,))
+
+
+def get_album_artist(alid: int) -> tuple[types.Artist, types.Album]:
+    conn = get_connection()
+    with conn:
+        cur = conn.execute("select name, channel_id, topic_channel_id, description, path from artist where aid = (select aid from album where alid = ?)", (alid,))
+        artist_data = cur.fetchone()
+        artist: types.Artist = {
+            "name": artist_data[0],
+            "channelId": artist_data[1],
+            "topic_channel_id": artist_data[2],
+            "description": artist_data[3],
+            "path": artist_data[4],
+            "singles": {"browseId": None, "results": [], "params": None},
+            "albums": {"browseId": None, "results": [], "params": None},
+            "views": "...",
+            "thumbnails": []
+        }
+        cur = conn.execute("select browse_id, title, year, track_count, duration, path from album where alid = ?", (alid,))
+        album_data = cur.fetchone()
+        album: types.Album = {
+            "browseId": album_data[0],
+            "title": album_data[1],
+            "year": album_data[2],
+            "trackCount": album_data[3],
+            "duration": album_data[4],
+            "path": album_data[5],
+        }
+    return artist, album
+
+
 def get_tracks_for_album(alid: int) -> list[str]:
     conn = get_connection()
     with conn:
@@ -220,3 +287,30 @@ def insert_track(alid: int, track: types.Track, track_id: int) -> int:
             )
             tid = cur.fetchone()
     return tid[0]
+
+
+def register_daemon():
+    conn = get_connection()
+    with conn:
+        conn.execute("insert or ignore into daemon values (?)", (os.getpid(),))
+
+
+def unregister_daemon():
+    conn = get_connection()
+    with conn:
+        conn.execute("delete from daemon where pid = ?", (os.getpid(),))
+
+
+def daemon_running() -> bool:
+    conn = get_connection()
+    with conn:
+        cur = conn.execute("select pid from daemon")
+        for pid in cur.fetchall():
+            try:
+                process = psutil.Process(pid[0])
+                if 'daemon.py' in ' '.join(process.cmdline()):
+                    return True
+            except psutil.NoSuchProcess:
+                ...
+            conn.execute("delete from daemon where pid = ?", pid)
+    return False

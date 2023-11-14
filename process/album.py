@@ -34,11 +34,29 @@ def get_singles_for_artist(artist: types.Artist) -> Optional[list[types.SingleRe
 
 def process_thumbnail(album: types.Album, album_destination: Path):
     cover_path: Path = album_destination.joinpath("cover.jpg")
-    urlretrieve(album["thumbnails"][-1]["url"], cover_path)
+    if not cover_path.is_file():
+        urlretrieve(album["thumbnails"][-1]["url"], cover_path)
     return cover_path
 
 
 TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int, Optional[str]]
+
+
+def get_from_alid(alid: int) -> tuple[types.Artist, types.Album]:
+    artist, album = database.get_album_artist(alid)
+    new_album: types.Album = ytmusic.get_album(album["browseId"])
+    new_album["browseId"] = album["browseId"]
+    new_album["path"] = album["path"]
+    return artist, album
+
+
+def insert_album(album: types.AlbumResult, artist: types.Artist) -> tuple[types.Album, int]:
+    browse_id: str = album["browseId"]
+    album: types.Album = ytmusic.get_album(browse_id)
+    album["browseId"] = browse_id
+    album["path"] = database.get_unique_album_path(album, artist)
+    alid: int = database.insert_album(album, artist)
+    return album, alid
 
 
 def process_album(
@@ -47,11 +65,7 @@ def process_album(
     artist_destination: Path,
     tracks: list[TrackInput],
 ):
-    browse_id: str = album["browseId"]
-    album: types.Album = ytmusic.get_album(browse_id)
-    album["browseId"] = browse_id
-    album["path"] = database.get_unique_album_path(album, artist)
-    alid: int = database.insert_album(album, artist)
+    album, alid = insert_album(album, artist)
     db_tracks: list[str] = database.get_tracks_for_album(alid)
     album_destination: Path = join_and_create(artist_destination, album["path"])
     cover_path = process_thumbnail(album, album_destination)

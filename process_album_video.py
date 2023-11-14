@@ -14,7 +14,7 @@ from util import types, convert_audio, database
 from util.io import eprint, join_and_create
 
 
-ROW_REGEX: re.Pattern = re.compile(r"((?:\d?\d:)??\d?\d:\d\d)(.*)$")
+ROW_REGEX: re.Pattern = re.compile(r"^\s*((?:\d?\d:)?\d?\d:\d\d)\s*[:-]?(.*)$")
 
 
 class Arguments:

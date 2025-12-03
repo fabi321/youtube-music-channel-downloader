@@ -39,14 +39,18 @@ class UpdateArtist(threading.Thread):
 
     def run(self):
         while self.is_running:
-            start_time: float = time.time()
-            if aid := database.get_least_recently_updated_artist():
-                try:
-                    self.do_update(aid[1])
-                except:
-                    print(traceback.format_exc())
-                database.update_artist(aid[0])
-            time.sleep(max(0.0, self.iteration_time + start_time - time.time()))
+            try:
+                start_time: float = time.time()
+                if aid := database.get_least_recently_updated_artist():
+                    try:
+                        self.do_update(aid[1])
+                    except:
+                        print(traceback.format_exc())
+                    database.update_artist(aid[0])
+                time.sleep(max(0.0, self.iteration_time + start_time - time.time()))
+            except:
+                print(traceback.format_exc())
+                time.sleep(1)
 
 
 class UpdateAlbum(threading.Thread):
@@ -78,23 +82,46 @@ class UpdateAlbum(threading.Thread):
     def log_result(self, results: types.ResultTuple, last_update: int):
         tracks, albums, errors = results
         output: types.Result = {"tracks": tracks, "albums": albums, "errors": errors}
-        if tracks or albums or errors and int(last_update) == 0:
+        if tracks or albums or errors and int(last_update) == 0 or errors and errors[0]['traceback'] == 'Not found':
+            for album in albums.values():
+                album['title'] = album['title'] + (' (New)' if int(last_update) == 0 else ' (Update)')
             with open(self.log_file, 'a') as f:
                 json.dump(output, f)
                 f.write("\n")
 
+    def not_found_error(self, alid: int, results: types.ResultTuple):
+        album_info = database.get_album_info(alid)
+        print(f"{album_info[0]} from {album_info[2]} not found, postponing to infinity.")
+        error: types.ResultError = {
+            'title': None,
+            'album': album_info[0],
+            'artist': album_info[2],
+            'id': album_info[1],
+            'traceback': 'Not found',
+        }
+        results[2].append(error)
+
     def run(self):
         while self.is_running:
-            start_time: float = time.time()
-            if alid := database.get_least_recently_updated_album():
-                results: types.ResultTuple = ([], {}, [])
-                try:
-                    self.do_update(alid[0], results)
-                except:
-                    print(traceback.format_exc())
-                self.log_result(results, alid[1])
-                database.update_album(alid[0])
-            time.sleep(max(0.0, self.iteration_time + start_time - time.time()))
+            try:
+                start_time: float = time.time()
+                if alid := database.get_least_recently_updated_album():
+                    infinite = False
+                    results: types.ResultTuple = ([], {}, [])
+                    try:
+                        self.do_update(alid[0], results)
+                    except Exception as e:
+                        if str(e).startswith('Server returned HTTP 404: Not Found.'):
+                            self.not_found_error(alid[0], results)
+                            infinite = True
+                        else:
+                            print(traceback.format_exc())
+                    self.log_result(results, alid[1])
+                    database.update_album(alid[0], infinite)
+                time.sleep(max(0.0, self.iteration_time + start_time - time.time()))
+            except:
+                print(traceback.format_exc())
+                time.sleep(1)
 
 
 def parse_args() -> Arguments:

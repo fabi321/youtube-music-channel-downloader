@@ -5,6 +5,7 @@ from util import types
 from typing import Optional
 import os
 import psutil
+import time
 
 db_path: pathlib.Path
 thread_local = threading.local()
@@ -192,6 +193,14 @@ def insert_album(album: types.Album, artist: types.Artist) -> int:
     return alid[0]
 
 
+def get_album_info(alid: int) -> tuple[str, str, str]:
+    conn = get_connection()
+    with conn:
+        cur = conn.cursor()
+        cur.execute("select title, browse_id, name from album join artist using (aid) where alid = ?", (alid,))
+        return cur.fetchone()
+
+
 def check_album_exists(album: types.AlbumResult) -> bool:
     conn = get_connection()
     with conn:
@@ -209,10 +218,11 @@ def get_least_recently_updated_album() -> Optional[tuple[int, int]]:
     return alid
 
 
-def update_album(alid: int):
+def update_album(alid: int, infinite: bool = False):
     conn = get_connection()
     with conn:
-        conn.execute("update album set last_update = strftime('%s', 'now') where alid = ?", (alid,))
+        target: int = 2**60 if infinite else int(time.time())
+        conn.execute("update album set last_update = ? where alid = ?", (target, alid))
 
 
 def get_album_artist(alid: int) -> tuple[types.Artist, types.Album]:

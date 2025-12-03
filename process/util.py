@@ -7,7 +7,9 @@ from pytubefix import Playlist
 from fuzzywuzzy import fuzz, process
 from util.types import YoutubeSearchVideoResult, Album, Track
 
-ytmusic: YTMusic = YTMusic()
+# Some releases are at "midnight local time". To ensure, that this happens
+# as early as possible, the location is set to New Zeeland (UTC +12)
+ytmusic: YTMusic = YTMusic(location='NZ')
 
 
 def video_search(query: str) -> List[YoutubeSearchVideoResult]:

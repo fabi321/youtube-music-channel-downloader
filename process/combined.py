@@ -25,8 +25,11 @@ def process_track_interop(args: TrackInput, results: types.ResultTuple):
             error_result = str(e)
         except AssertionError as e:
             error_result = f"Failed assertion {e}"
-        except:
-            error_result = traceback.format_exc()
+        except Exception as e:
+            if str(e).startswith('SABR Maximum reload attempts reached'):
+                error_result = 'SABR Maximum reload attempts reached'
+            else:
+                error_result = traceback.format_exc()
     album: types.Album = args[1]
     track: types.Track = album["tracks"][args[0]]
     artist: types.Artist = args[2]

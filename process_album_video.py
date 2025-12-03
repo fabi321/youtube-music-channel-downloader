@@ -13,8 +13,10 @@ from tqdm import tqdm
 from util import types, convert_audio, database
 from util.io import eprint, join_and_create
 
+TIME_GROUP: str = r"((?:\d?\d:)?\d?\d:\d\d)"
+NAME_GROUP: str = r"(.*)"
 
-ROW_REGEX: re.Pattern = re.compile(r"^\s*((?:\d?\d:)?\d?\d:\d\d)\s*[:-]?(.*)$")
+ROW_REGEX: re.Pattern = re.compile(fr"^\s*(?:\d+\.\s*)?(?:{TIME_GROUP}\s*[:-]?(.*)|(.*?)\s*{TIME_GROUP})$")
 
 
 class Arguments:
@@ -86,14 +88,14 @@ def download_video(video: YouTube, folder: Path) -> str:
     return track_tmp_path
 
 
-def find_track_information(description: str) -> list[tuple[str, str]]:
+def find_track_information(description: str) -> list[tuple[str, str, Optional[str]]]:
     longest_list: list[tuple[str, str]] = []
     current_list: list[tuple[str, str]] = []
     for row in description.split("\n"):
         row = row.strip()
         if match := ROW_REGEX.match(row):
-            timestamp: str = match.group(1)
-            name: str = match.group(2).strip()
+            timestamp: str = match.group(1) or match.group(4)
+            name: str = (match.group(2) or match.group(3)).strip()
             current_list.append((timestamp, name))
         elif row:  # skip empty rows
             if len(current_list) > len(longest_list):
@@ -101,7 +103,15 @@ def find_track_information(description: str) -> list[tuple[str, str]]:
             current_list = []
     if len(current_list) > len(longest_list):
         longest_list = current_list
-    return longest_list
+    extended_timestamps: list[tuple[str, str, Optional[str]]] = [
+        (
+            longest_list[i][0],
+            longest_list[i][1],
+            longest_list[i + 1][0] if i + 1 < len(longest_list) else None,
+        )
+        for i in range(len(longest_list))
+    ]
+    return extended_timestamps
 
 
 def process_args(args: Arguments):
@@ -115,19 +125,13 @@ def process_args(args: Arguments):
     if "youtube" not in video_id:
         video_id = f"https://youtube.com/watch?v={video_id}"
     video: YouTube = YouTube(video_id)
-    timestamps: list[tuple[str, str]] = find_track_information(get_description(video))
+    timestamps: list[tuple[str, str, Optional[str]]] = find_track_information(get_description(video))
     print("Found the following timestamps:")
-    for timestamp, name in timestamps:
-        print(f"{timestamp}: {name}")
+    for timestamp, name, next_stamp in timestamps:
+        print(f"{timestamp}-{next_stamp}: {name}")
     tmp_path = download_video(video, args.destination)
     extended_timestamps: list[tuple[int, str, str, Optional[str]]] = [
-        (
-            i + 1,
-            timestamps[i][0],
-            timestamps[i][1],
-            timestamps[i + 1][0] if i + 1 < len(timestamps) else None,
-        )
-        for i in range(len(timestamps))
+        (i + 1, *timestamp) for i, timestamp in enumerate(timestamps)
     ]
     album_path = args.destination / artist / album
     album_path.mkdir(parents=True, exist_ok=True)

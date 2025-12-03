@@ -18,6 +18,7 @@ def get_albums_for_artist(artist: types.Artist) -> Optional[list[types.AlbumResu
             if param_result:
                 return param_result
         return artist["albums"]["results"]
+    return None
 
 
 def get_singles_for_artist(artist: types.Artist) -> Optional[list[types.SingleResult]]:
@@ -30,6 +31,7 @@ def get_singles_for_artist(artist: types.Artist) -> Optional[list[types.SingleRe
             if param_result:
                 return param_result
         return artist["singles"]["results"]
+    return None
 
 
 def process_thumbnail(album: types.Album, album_destination: Path):

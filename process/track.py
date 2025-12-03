@@ -1,4 +1,5 @@
 from pathlib import Path
+from time import sleep
 from typing import Optional
 
 from pathvalidate import sanitize_filename
@@ -79,6 +80,21 @@ def get_alternative_track_id(
     return result
 
 
+def get_stream(video_url: str) -> Stream:
+    video: Optional[YouTube] = YouTube(video_url)
+    video.visitor_data
+    stream: Optional[Stream]
+    if types.Options.mp3:
+        stream = video.streams.get_audio_only(subtype="mp4")
+    else:
+        stream = video.streams.get_audio_only(subtype="webm")
+    if not stream:
+        stream = video.streams.get_audio_only()
+    if not stream:
+        stream = video.streams.get_highest_resolution()
+    return stream
+
+
 def process_track(
     track: types.Track,
     artist: types.Artist,
@@ -90,19 +106,15 @@ def process_track(
 ) -> bool:
     if not video_url:
         raise RuntimeError("Did not find any matching video at all")
-    video: Optional[YouTube] = YouTube(video_url)
-    stream: Optional[Stream]
     try:
-        if types.Options.mp3:
-            stream = video.streams.get_audio_only(subtype="mp4")
-        else:
-            stream = video.streams.get_audio_only(subtype="webm")
-        if not stream:
-            stream = video.streams.get_audio_only()
-        if not stream:
-            stream = video.streams.get_highest_resolution()
+        stream = get_stream(video_url)
     except exceptions.AgeRestrictedError:
         raise RuntimeError("Age restricted")
+    except exceptions.BotDetection:
+        print("Waiting 30min due to bot detection")
+        sleep(30*60) # 30min sleep
+        stream = get_stream(video_url)
+
     track_tmp_path = stream.download(
         output_path=str(track_path.parent), filename_prefix=str(track_id)
     )

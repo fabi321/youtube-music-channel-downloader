@@ -42,7 +42,7 @@ def process_thumbnail(album: types.Album, album_destination: Path):
     return cover_path
 
 
-TrackInput = tuple[int, types.Album, types.Artist, Path, Path, int, Optional[str]]
+TrackInput = tuple[int, types.Album, types.Artist, Path, int, Optional[str]]
 
 
 def get_from_alid(alid: int) -> tuple[types.Artist, types.Album]:
@@ -78,7 +78,7 @@ def process_album(
         video_id: str = database.get_video_id_for_track(track)
         if video_id not in db_tracks:
             tracks.append(
-                (i, album, artist, album_destination, cover_path, alid, video_urls[i])
+                (i, album, artist, album_destination, alid, video_urls[i])
             )
             found_any = True
     if found_any:

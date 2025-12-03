@@ -99,7 +99,6 @@ def process_track(
     track: types.Track,
     artist: types.Artist,
     track_path: Path,
-    cover_path: Path,
     track_id: int,
     album: types.Album,
     video_url: Optional[str],
@@ -119,7 +118,7 @@ def process_track(
         output_path=str(track_path.parent), filename_prefix=str(track_id)
     )
     metadata: convert_audio.Metadata = convert_audio.Metadata.from_ytmusic(
-        track, track_id, album, artist, cover_path
+        track, track_id, album, artist
     )
     convert_success: bool = convert_audio.level_and_combine_audio(
         track_tmp_path, track_path, metadata
@@ -134,7 +133,6 @@ def process_album_track(
     album: types.Album,
     artist: types.Artist,
     album_destination: Path,
-    cover_path: Path,
     alid: int,
     video_url: Optional[str],
 ):
@@ -145,7 +143,7 @@ def process_album_track(
         f'{track_id:02} - {sanitize_filename(track["title"])}.{extension}'
     )
     convert_success: bool = process_track(
-        track, artist, track_path, cover_path, track_id, album, video_url
+        track, artist, track_path, track_id, album, video_url
     )
     if convert_success:
         database.insert_track(alid, track, track_id)

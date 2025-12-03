@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 
 from pathvalidate import sanitize_filename
-from pytube import YouTube, Stream, exceptions
+from pytubefix import YouTube, Stream, exceptions
 
 from util import types, convert_audio, database
 from util.io import eprint

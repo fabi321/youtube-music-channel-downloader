@@ -7,7 +7,7 @@ from typing import Optional
 from json import loads
 
 from pathvalidate import sanitize_filename
-from pytube import YouTube, Stream
+from pytubefix import YouTube, Stream
 from tqdm import tqdm
 
 from util import types, convert_audio, database

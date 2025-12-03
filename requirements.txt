@@ -1,5 +1,5 @@
 youtube-search-python
-pytube
+pytubefix
 ytmusicapi
 mutagen
 tqdm

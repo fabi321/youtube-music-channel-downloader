@@ -3,7 +3,7 @@ from typing import List, Optional, Tuple, Dict
 
 from youtubesearchpython import VideosSearch
 from ytmusicapi import YTMusic
-from pytube import Playlist
+from pytubefix import Playlist
 from fuzzywuzzy import fuzz, process
 from util.types import YoutubeSearchVideoResult, Album, Track
 

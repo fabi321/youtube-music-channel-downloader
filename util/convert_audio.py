@@ -25,9 +25,6 @@ class Metadata:
         year: str,
         track_id: int,
         artists: List[AlbumArtist],
-        cover_path: Optional[Path] = None,
-        cover_width: Optional[int] = None,
-        cover_height: Optional[int] = None,
     ):
         self.title: str = track
         self.artist: str = artist
@@ -35,16 +32,6 @@ class Metadata:
         self.year: str = year
         self.track: str = str(track_id)
         self.artists: List[AlbumArtist] = artists
-        self.cover: Optional[str] = None
-        if cover_path:
-            picture = Picture()
-            with open(cover_path, "rb") as f:
-                picture.data = f.read()
-            picture.type = PictureType().COVER_FRONT
-            picture.mime = "image/jpeg"
-            picture.width = cover_width
-            picture.height = cover_height
-            self.cover = b64encode(picture.write()).decode()
 
     @staticmethod
     def from_ytmusic(
@@ -52,7 +39,6 @@ class Metadata:
         track_id: int,
         album: types.Album,
         artist: types.Artist,
-        cover_path: Path,
     ):
         thumbnail: types.Thumbnail = album["thumbnails"][-1]
         return Metadata(
@@ -62,7 +48,6 @@ class Metadata:
             album.get("year", "0"),
             track_id,
             track["artists"],
-            cover_path,
             thumbnail["width"],
             thumbnail["height"],
         )
@@ -70,11 +55,9 @@ class Metadata:
     def for_ffmpeg(self) -> list[str]:
         all_attributes: dict[str, str] = {
             "TITLE": self.title,
-            "ARTIST": self.artist,
             "ALBUM": self.album,
             "DATE": self.year,
             "TRACKNUMBER": self.track,
-            #'METADATA_BLOCK_PICTURE': self.cover
         }
         if types.Options.mp3:
             new_attributes: dict[str, str] = {}

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from youtubesearchpython import ChannelsSearch
+from youtubesearchpython import ChannelsSearch, CustomSearch
 
 from process.util import ytmusic
 from process.album import get_albums_for_artist, get_singles_for_artist
@@ -15,6 +15,11 @@ def get_topic_channel_id(artist: types.Artist) -> str:
     for channel in search.result()["result"]:
         if channel["title"].lower() == target.lower():
             return channel["id"]
+    if search.responseSource and (alt := search.responseSource[0].get('showingResultsForRenderer')):
+        search = CustomSearch(target, alt['originalQueryEndpoint']['searchEndpoint']['params'])
+        for channel in search.result()["result"]:
+            if channel["title"].lower() == target.lower():
+                return channel["id"]
 
 
 AlbumInput = tuple[types.AlbumResult, types.Artist, Path]
@@ -27,7 +32,7 @@ def process_artist(
     no_singles: bool,
 ):
     artist: types.Artist = ytmusic.get_artist(channel_id)
-    artist["topic_channel_id"] = get_topic_channel_id(artist)
+    artist["topic_channel_id"] = get_topic_channel_id(artist) or channel_id
     artist["path"] = database.get_unique_artist_path(artist)
     database.insert_artist(artist, no_singles)
     artist_destination: Path = join_and_create(destination, artist["path"])

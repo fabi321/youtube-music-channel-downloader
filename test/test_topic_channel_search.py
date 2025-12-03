@@ -30,6 +30,7 @@ def get_artist(name: str, channel_id: str, topic_channel: str) -> Artist:
 ARTISTS: list[tuple[str, str, str]] = [
     ("Maroon 5", "UCN1hnUccO4FD5WfM7ithXaw", "UCdFe4KkWwZ_twpo-UECR-Nw"),
     ("Depeche Mode", "UCM-CWGUijAC-8idv6k6Fygw", "UC-CcyIM_seGnGL5-2Fsppow"),
+    ("Diabula Rasa", "UCdWkOp35b1rIDgkgmPXoEfQ", "UCdWkOp35b1rIDgkgmPXoEfQ")
 ]
 
 

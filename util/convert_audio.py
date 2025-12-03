@@ -70,12 +70,11 @@ class Metadata:
             result.append("-metadata")
             result.append(f"{name}={value}")
         if not types.Options.mp3:
-            unhandled: List[AlbumArtist] = [
-                artist for artist in self.artists if artist["name"] != self.artist
-            ]
-            for artist in unhandled:
-                result.append("-metadata")
-                result.append(f'ARTIST={artist["name"]}')
+            if all(self.artist.lower() not in artist["name"].lower() for artist in self.artists):
+                self.artists.insert(0, {"name": self.artist})
+            artist = ', '.join(artist["name"] for artist in self.artists)
+            result.append("-metadata")
+            result.append(f'ARTIST={artist}')
         return result
 
 

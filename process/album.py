@@ -71,8 +71,8 @@ def process_album(
     album, alid = insert_album(album, artist)
     db_tracks: list[str] = database.get_tracks_for_album(alid)
     album_destination: Path = join_and_create(artist_destination, album["path"])
-    cover_path = process_thumbnail(album, album_destination)
     video_urls = match_playlist_and_album(album)
+    found_any = False
     for i in range(len(album["tracks"])):
         track: types.Track = album["tracks"][i]
         video_id: str = database.get_video_id_for_track(track)
@@ -80,3 +80,6 @@ def process_album(
             tracks.append(
                 (i, album, artist, album_destination, cover_path, alid, video_urls[i])
             )
+            found_any = True
+    if found_any:
+        process_thumbnail(album, album_destination)

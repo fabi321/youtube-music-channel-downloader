@@ -29,6 +29,11 @@ def always_gen(n: int, v):
 
 
 def join_and_create(base: Path, added: str) -> Path:
-    joined = base.joinpath(sanitize_filename(added))
+    new_filename: str = sanitize_filename(added)
+    if base.is_dir():
+        for obj in base.iterdir():
+            if obj.is_dir() and obj.name.lower() == new_filename.lower():
+                return obj
+    joined = base.joinpath(new_filename)
     joined.mkdir(parents=True, exist_ok=True)
     return joined

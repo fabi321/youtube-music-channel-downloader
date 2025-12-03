@@ -35,7 +35,10 @@ def get_singles_for_artist(artist: types.Artist) -> Optional[list[types.SingleRe
 def process_thumbnail(album: types.Album, album_destination: Path):
     cover_path: Path = album_destination.joinpath("cover.jpg")
     if not cover_path.is_file():
-        urlretrieve(album["thumbnails"][-1]["url"], cover_path)
+        img_url: str = album["thumbnails"][-1]["url"]
+        if "=" in img_url:
+            img_url = img_url.split("=")[0] + "=s0?imgmax=0"
+        urlretrieve(img_url, cover_path)
     return cover_path
 
 

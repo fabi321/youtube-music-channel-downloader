@@ -48,8 +48,6 @@ class Metadata:
             album.get("year", "0"),
             track_id,
             track["artists"],
-            thumbnail["width"],
-            thumbnail["height"],
         )
 
     def for_ffmpeg(self) -> list[str]:
@@ -92,7 +90,7 @@ def level_and_combine_audio(
         input_modifiers.extend(("-to", end))
     audio_level_command = [
         *NICE_CMD,
-        "ffmpeg",
+        "/home/fabian/ffmpeg/ffmpeg",
         "-hide_banner",
         *input_modifiers,
         "-i",
@@ -128,7 +126,7 @@ def level_and_combine_audio(
     codec = "libmp3lame" if types.Options.mp3 else "libopus"
     audio_extract_command = [
         *NICE_CMD,
-        "ffmpeg",
+        "/home/fabian/ffmpeg/ffmpeg",
         "-y",
         "-v",
         "warning",

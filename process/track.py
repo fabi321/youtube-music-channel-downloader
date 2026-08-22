@@ -110,8 +110,8 @@ def process_track(
     except exceptions.AgeRestrictedError:
         raise RuntimeError("Age restricted")
     except exceptions.BotDetection:
-        print("Waiting 30min due to bot detection")
-        sleep(30*60) # 30min sleep
+        print("Waiting 5min due to bot detection")
+        sleep(5*60)  # 5min sleep
         stream = get_stream(video_url)
 
     track_tmp_path = stream.download(
@@ -142,6 +142,9 @@ def process_album_track(
     track_path: Path = album_destination.joinpath(
         f'{track_id:02} - {sanitize_filename(track["title"])}.{extension}'
     )
+    if track_path.exists():
+        database.insert_track(alid, track, track_id)
+        return
     convert_success: bool = process_track(
         track, artist, track_path, track_id, album, video_url
     )

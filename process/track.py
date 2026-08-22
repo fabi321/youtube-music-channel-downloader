@@ -112,7 +112,10 @@ def process_track(
     except exceptions.BotDetection:
         print("Waiting 5min due to bot detection")
         sleep(5*60)  # 5min sleep
-        stream = get_stream(video_url)
+        try:
+            stream = get_stream(video_url)
+        except exceptions.BotDetection:
+            raise RuntimeError("Could not fetch video due to bot detection")
 
     track_tmp_path = stream.download(
         output_path=str(track_path.parent), filename_prefix=str(track_id)

@@ -95,6 +95,7 @@ def level_and_combine_audio(
         *input_modifiers,
         "-i",
         tmp_file,
+        "-vn",
         "-af",
         f"loudnorm=I={INTENDED_I}:TP={INTENDED_TP}:LRA={INTENDED_LRA}:print_format=json",
         "-f",

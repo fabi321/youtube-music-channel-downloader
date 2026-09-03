@@ -1,9 +1,8 @@
 from pathlib import Path
-from time import sleep
 from typing import Optional
+from subprocess import Popen, PIPE, STDOUT
 
 from pathvalidate import sanitize_filename
-from pytubefix import YouTube, Stream, exceptions
 
 from util import types, convert_audio, database
 from util.io import eprint
@@ -80,19 +79,30 @@ def get_alternative_track_id(
     return result
 
 
-def get_stream(video_url: str) -> Stream:
-    video: Optional[YouTube] = YouTube(video_url)
-    video.visitor_data
-    stream: Optional[Stream]
-    if types.Options.mp3:
-        stream = video.streams.get_audio_only(subtype="mp4")
-    else:
-        stream = video.streams.get_audio_only(subtype="webm")
-    if not stream:
-        stream = video.streams.get_audio_only()
-    if not stream:
-        stream = video.streams.get_highest_resolution()
-    return stream
+def download(video_url: str, target_dir: Path, track_id: int) -> Path:
+    process = Popen(
+        [
+            "yt-dlp",
+            '-f',
+            'bestaudio',
+            '-o',
+            f'{target_dir}/{track_id}_download_%(title)s.%(ext)s',
+            video_url,
+        ],
+        stdout=PIPE,
+        stderr=STDOUT,
+        text=True,
+    )
+    status = process.wait()
+    if status == 0:
+        for file in target_dir.glob(f'{track_id}_download_*'):
+            return file
+        raise RuntimeError("Could not find video after downloading")
+    assert process.stdout
+    stdout = process.stdout.read()
+    if "Sign in to confirm your age." in stdout:
+        raise RuntimeError("Age restricted")
+    raise RuntimeError(f"Error running yt-dlp:\n{stdout}")
 
 
 def process_track(
@@ -105,21 +115,9 @@ def process_track(
 ) -> bool:
     if not video_url:
         raise RuntimeError("Did not find any matching video at all")
-    try:
-        stream = get_stream(video_url)
-    except exceptions.AgeRestrictedError:
-        raise RuntimeError("Age restricted")
-    except exceptions.BotDetection:
-        print("Waiting 5min due to bot detection")
-        sleep(5*60)  # 5min sleep
-        try:
-            stream = get_stream(video_url)
-        except exceptions.BotDetection:
-            raise RuntimeError("Could not fetch video due to bot detection")
 
-    track_tmp_path = stream.download(
-        output_path=str(track_path.parent), filename_prefix=str(track_id)
-    )
+    track_tmp_path = download(video_url, track_path.parent, track_id)
+
     metadata: convert_audio.Metadata = convert_audio.Metadata.from_ytmusic(
         track, track_id, album, artist
     )

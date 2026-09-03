@@ -77,7 +77,7 @@ class Metadata:
 
 
 def level_and_combine_audio(
-    tmp_file: str,
+    tmp_file: Path,
     track_path: Path,
     metadata: Metadata,
     seek: Optional[str] = None,
@@ -94,7 +94,7 @@ def level_and_combine_audio(
         "-hide_banner",
         *input_modifiers,
         "-i",
-        tmp_file,
+        str(tmp_file),
         "-vn",
         "-af",
         f"loudnorm=I={INTENDED_I}:TP={INTENDED_TP}:LRA={INTENDED_LRA}:print_format=json",
@@ -133,7 +133,7 @@ def level_and_combine_audio(
         "warning",
         *input_modifiers,
         "-i",
-        tmp_file,
+        str(tmp_file),
         "-af",
         loudnorm,
         "-c:a",
